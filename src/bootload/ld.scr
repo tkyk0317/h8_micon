@@ -1,0 +1,63 @@
+/* OUTPUT_FORMAT("elf32-h8300") */
+OUTPUT_ARCH(h8300h)
+ENTRY("_start")
+
+/* 各メモリー領域を定義 */
+MEMORY
+{
+    /* ROM定義 o: 開始アドレス l: サイズ */
+    romall(rx)    : o = 0x000000, l = 0x080000 /* 512KB */
+    vectors(r)    : o = 0x000000, l = 0x000100 /* 割り込みベクター領域 */
+    rom(rx)       : o = 0x000100, l = 0x07ff00
+
+    /* RAM定義 o: 開始アドレス l: サイズ */
+    ramall(rwx)   : o = 0xffbf20, l = 0x004000 /* 16KB */
+    data(rwx)     : o = 0xfffc20, l = 0x000300
+    stack(rw)     : o = 0xffff00, l = 0x000000 /* スタック領域(RAMの最後) */
+}
+
+SECTIONS
+{
+    /* 割り込みベクターはvectors領域へ配置 */
+    .vectors : {
+        vector.o(.data)
+    } > vectors
+
+    /* テキストセクションはrom領域へ配置 */
+    .text : {
+        _text_start = . ;
+        *(.text)
+        _etext = . ;
+    } > rom
+
+    /* Radonlyデータはrom領域へ配置 */
+    .rodata : {
+        _rodata_start = . ;
+        *(.strings)
+        *(.rodata)
+        *(.rodata.*)
+        _erodata = . ;
+    } > rom
+
+    /* dataセクションはdata領域へ配置し、ロードは物理アドレスから */
+    .data : {
+        _data_start = . ;
+        *(.data)
+        _edata = . ;
+    } > data AT> rom
+
+    /* bssセクションはdata領域へ配置し、ロードは物理アドレスから */
+    .bss : {
+        _bss_start = . ;
+        *(.bss)
+        *(COMMON)
+        _ebss = . ;
+    } > data AT> rom
+
+    /* endシンボルをbssの終端に配置し、スタックを配置 */
+    . = ALIGN(4);
+    _end = . ;
+    .stack : {
+        _stack = . ;
+    } > stack
+}

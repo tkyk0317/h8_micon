@@ -1,0 +1,12 @@
+・binutilsビルド
+　・./configure --target=h8300-elf --disable-nls --prefix=/home/takayuki/home2/work/h8_micon/bin/
+　・make
+　・make install
+
+・gccビルド
+　・mkdir build
+　・cd build
+　・configure --target=h8300-elf --disable-nls --disable-threads --disable-shared --enable-languages=c --prefix=/home/takayuki/home2/work/h8_micon/bin --disable-libssp
+　　→libssp：スタック管理に関するライブラリ。今回は使用しないため、disable指定
+　・make
+　・make install
